@@ -1,0 +1,17 @@
+*.mod.o
+*.mod.c
+*.mod*
+*.o.cmd
+*.o
+*.ko*
+*.symvers
+*.order
+*.txt
+params
+vars
+
+!*.c
+!*.h
+!Makefile
+!*.sh
+

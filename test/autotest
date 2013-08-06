@@ -1,0 +1,30 @@
+#!/bin/bash  
+ip=8.8.8.8
+#使用Google的公共DNS测试  
+echo  
+echo "test network connection ... 测试网络连接 ..."  
+echo  
+  
+PINGRET=$( ping $ip -c 4 | grep "icmp_" )  
+  
+#echo $PINGRET  
+  
+[ -z "$PINGRET" ] &&  
+{  
+	PINGRET=$( ping $ip -c 4 | grep "icmp_" )  
+   
+	[ -z "$PINGRET" ] &&  
+	{  
+		echo "no network connection ... 无网络连接... 请确保网线正确连接是修改正确参数后再测试..."  
+   
+		exit 1;  
+	}  
+}||  
+{  
+	echo "test network successfully ... 网络连接畅通"  
+
+	#test
+	./test && sleep 5 && ./done && gnuplot plot
+  
+	exit 0;  
+}  
