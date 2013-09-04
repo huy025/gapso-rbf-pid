@@ -1,7 +1,7 @@
 #!/bin/bash
-/root/AQM/rbfgradDoubleStaticArray/queuedata/read.sh
+../queuedata/read.sh
 cp queuedata_rbfgrad.txt /home/samba_shared_dir
-/root/AQM/rbfgradDoubleStaticArray/iproute2-3.1.0/tc/tc qdisc del dev eth0 root
-rmmod /root/AQM/rbfgradDoubleStaticArray/queuedata/seqfile_queuedata_rbfgrad.ko
-rmmod /root/AQM/rbfgradDoubleStaticArray/modules/sch_rbfgrad.ko
+../iproute2-3.1.0/tc/tc qdisc del dev eth0 root
+rmmod ../queuedata/seqfile_queuedata_rbfgrad.ko
+rmmod ../modules/sch_rbfgrad.ko
 

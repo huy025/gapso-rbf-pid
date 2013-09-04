@@ -24,7 +24,7 @@ PINGRET=$( ping $ip -c 4 | grep "icmp_" )
 	echo "test network successfully ... 网络连接畅通"  
 
 	#test
-	./test && sleep 5 && ./done && gnuplot plot
+	./test $1 $2 $3&& sleep 5 && ./done && ./transfer #&& gnuplot plot
   
 	exit 0;  
 }  

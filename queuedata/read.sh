@@ -8,7 +8,7 @@ touch queuedata_rbfgrad.txt
 i=0
 while [ "$i" -le "30000" ]
 do
-insmod /root/AQM/rbfgradDoubleStaticArray/queuedata/seqfile_queuedata_rbfgrad.ko queue_array_count=$i
+insmod /root/AQM/gapso-rbf-pid/queuedata/seqfile_queuedata_rbfgrad.ko queue_array_count=$i
 cat /proc/data_seq_file >> queuedata_rbfgrad.txt
 rmmod seqfile_queuedata_rbfgrad
 i=$[$i + 40]

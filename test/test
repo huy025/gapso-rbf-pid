@@ -1,15 +1,15 @@
 #!/bin/bash
-cd /root/AQM/rbfgradDoubleStaticArray/modules
+cd ../modules
 make clean
 make
-cd /root/AQM/rbfgradDoubleStaticArray/queuedata
+cd ../queuedata
 make clean
 make
-insmod /root/AQM/rbfgradDoubleStaticArray/modules/sch_rbfgrad.ko
-insmod /root/AQM/rbfgradDoubleStaticArray/queuedata/seqfile_queuedata_rbfgrad.ko
-/root/AQM/rbfgradDoubleStaticArray/iproute2-3.1.0/tc/tc qdisc add dev eth0 root rbfgrad limit 10000kB sampl_period 10 q_ref 300 p_init 0 p_min 0 p_max 1.0 eta_p 0.000638956 eta_i 0.000959862 eta_d 0.000959862 _n 1 m 5 alpha 0.000959862 eta 0.000638956 ecn
-#/root/AQM/rbfgradDoubleStaticArray/iproute2-3.1.0/tc/tc qdisc add dev eth0 root rbfgrad limit 10000kB sampl_period 10 q_ref 300 p_init 0 p_min 0 p_max 1.0 eta_p 0.000638956 eta_i 0.000959862 eta_d 0.000959862 _n 1 m 5 alpha 0.0000001 eta 0.0000001 ecn
+insmod ../modules/sch_rbfgrad.ko
+insmod ../queuedata/seqfile_queuedata_rbfgrad.ko
+../iproute2-3.1.0/tc/tc qdisc add dev eth0 root rbfgrad limit 10000kB sampl_period 10 q_ref 300 p_init 0 p_min 0 p_max 1.0 eta_p 0.000638956 eta_i 0.000959862 eta_d 0.000959862 _n 1 m 5 alpha 0.000959862 eta 0.000638956 ecn
+#../iproute2-3.1.0/tc/tc qdisc add dev eth0 root rbfgrad limit 10000kB sampl_period 10 q_ref 300 p_init 0 p_min 0 p_max 1.0 eta_p 0.000638956 eta_i 0.000959862 eta_d 0.000959862 _n 1 m 5 alpha 0.0000001 eta 0.0000001 ecn
 #iperf -c 192.168.5.101 -b 10M -P 10 -t 100
 #client  ip:192.168.5.101   parallel:10  time:100 secs
-iperf -c 192.168.5.106 -P 50 -t 50 
+iperf -c $1 -P $2 -t $3 
 
