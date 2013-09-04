@@ -22,6 +22,7 @@
 #include <linux/kthread.h>
 #include <linux/interrupt.h>
 #include <exp.h>
+#include <fabs.h>
 //#include "tp-rbfgrad-trace.h"//trace debug
 //#include "tp-rbfgrad-vars-trace.h"//trace debug
 //DEFINE_TRACE(rbfgrad_output);//trace debug
@@ -436,6 +437,7 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	int epoch;
 	double sum[UNIT_NUM];
 	double SSE;
+	double oldNetOut;
 
 	eta_p = parms->eta_p;
 	eta_i = parms->eta_i;
@@ -474,6 +476,8 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	}
 	printk(KERN_INFO "----------------\n");
 
+
+	oldNetOut = parms->NetOut;
 	for(epoch=0; epoch < parms->MaxEpoch; epoch++)
 	{
 		parms->NetOut = 0;
@@ -486,14 +490,20 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	    
 			parms->NetOut = parms->NetOut + parms->w_k[i] * r[i];
 		}
+
+		if(fabs(parms->NetOut-oldNetOut)>oldNetOut/parms->q_ref*oldNetOut)
+			parms->NetOut = oldNetOut;
+
 		//printk(KERN_INFO "-------------------NetOut---------------\n");
 		printk(KERN_INFO "%lld\n",*(long long*)&parms->NetOut);
 		printk(KERN_INFO "----------------\n");
 	    
 		SSE = (queue_len[0]-parms->NetOut)*(queue_len[0]-parms->NetOut)/2;
 
+		/*
 	    if(SSE<parms->E0)
 	        break;
+			*/
 		
 	    for(i=0;i<UNIT_NUM;i++)
 		{
