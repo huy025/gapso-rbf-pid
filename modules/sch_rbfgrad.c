@@ -491,7 +491,11 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 			parms->NetOut = parms->NetOut + parms->w_k[i] * r[i];
 		}
 
-		if(fabs(parms->NetOut-oldNetOut)>oldNetOut/parms->q_ref*oldNetOut)
+		/*
+		if(oldNetOut>parms->q_ref*0.5 && oldNetOut<parms->q_ref*1.5 && fabs(parms->NetOut-oldNetOut)>oldNetOut/parms->q_ref*oldNetOut)
+			parms->NetOut = oldNetOut;
+			*/
+		if(oldNetOut>100 && oldNetOut<500 && parms->NetOut<100 && parms->NetOut>500)
 			parms->NetOut = oldNetOut;
 
 		//printk(KERN_INFO "-------------------NetOut---------------\n");
