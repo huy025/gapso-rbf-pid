@@ -7,7 +7,7 @@ make clean
 make
 insmod ../modules/sch_rbfgrad.ko
 insmod ../queuedata/seqfile_queuedata_rbfgrad.ko
-../iproute2-3.1.0/tc/tc qdisc add dev eth0 root rbfgrad limit 10000kB sampl_period 10 q_ref 300 p_init 0 p_min 0 p_max 1.0 eta_p 0.07638956 eta_i 0.1959862 eta_d 0.07959862 _n 1 m 5 alpha 0.0959862 eta 0.0638956 ecn
+../iproute2-3.1.0/tc/tc qdisc add dev eth0 root rbfgrad limit 10000kB sampl_period 10 q_ref 300 p_init 0 p_min 0 p_max 1.0 eta_p 0.07 eta_i 0.02 eta_d 0.07 _n 1 m 5 alpha 0.1 eta 0.06 ecn
 #../iproute2-3.1.0/tc/tc qdisc add dev eth0 root rbfgrad limit 10000kB sampl_period 10 q_ref 300 p_init 0 p_min 0 p_max 1.0 eta_p 0.000638956 eta_i 0.000959862 eta_d 0.000959862 _n 1 m 5 alpha 0.0000001 eta 0.0000001 ecn
 #iperf -c 192.168.5.101 -b 10M -P 10 -t 100
 #client  ip:192.168.5.101   parallel:10  time:100 secs
