@@ -135,7 +135,7 @@ struct rbfgrad_parms {
 	double delta_k_1[UNIT_NUM];
 	double delta_k_2[UNIT_NUM];
 	double jacobian;
-	double NetOut;
+	double NetOut[PARTICLE_NUM];
 	//PSO 2013-9-8
 	double w_pso[PARTICLE_NUM][UNIT_NUM];//to seperate with w
 	double pos[PARTICLE_NUM][UNIT_NUM];
@@ -144,6 +144,7 @@ struct rbfgrad_parms {
 	double pbestval[PARTICLE_NUM];
 	double gbest[UNIT_NUM];
 	double gbestval;
+	int gbest_index;
 	
 
 	int q_k;
@@ -217,7 +218,9 @@ static inline void rbfgrad_set_parms(struct rbfgrad_parms *p, int sampl_period,
 		p->SamIn[i] = 0;
 		p->SamOut[i] = 0;
 	} 
-	p->NetOut = 0;
+
+	for(i=0;i<PARTICLE_NUM;i++)
+		p->NetOut[i] = 0;
 
 	p->e_k = 0;
 	p->e_k_1 = 0;
