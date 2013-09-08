@@ -120,7 +120,7 @@ static int rbfgrad_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 			queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->ki_k));
 			queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->kd_k));
 			queue_show_base_rbfgrad[array_element_rbfgrad].jacobian=*((long long *)(&parms->jacobian));
-			queue_show_base_rbfgrad[array_element_rbfgrad].NetOut=*((long long *)(&parms->NetOut));
+			queue_show_base_rbfgrad[array_element_rbfgrad].NetOut=*((long long *)(&parms->NetOut[parms->gbest_index]));
 			queue_show_base_rbfgrad[array_element_rbfgrad].e_k=parms->e_k;
 			queue_show_base_rbfgrad[array_element_rbfgrad].e_k_1=parms->e_k_1;
 			queue_show_base_rbfgrad[array_element_rbfgrad].e_k_2=parms->e_k_2;
@@ -170,7 +170,7 @@ static int rbfgrad_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 			queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->ki_k));
 			queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->kd_k));
 			queue_show_base_rbfgrad[array_element_rbfgrad].jacobian=*((long long *)(&parms->jacobian));
-			queue_show_base_rbfgrad[array_element_rbfgrad].NetOut=*((long long *)(&parms->NetOut));
+			queue_show_base_rbfgrad[array_element_rbfgrad].NetOut=*((long long *)(&parms->NetOut[parms->gbest_index]));
 			queue_show_base_rbfgrad[array_element_rbfgrad].e_k=*((long long *)(&parms->e_k));
 			queue_show_base_rbfgrad[array_element_rbfgrad].e_k_1=*((long long *)(&parms->e_k_1));
 			queue_show_base_rbfgrad[array_element_rbfgrad].e_k_2=*((long long *)(&parms->e_k_2));
@@ -419,16 +419,16 @@ double get_rbf_SSE(struct rbfgrad_parms *parms,int which)
 	double sum[UNIT_NUM];
 	double r[UNIT_NUM];		// 隐含层神经元值
 
-		parms->NetOut = 0;
+		parms->NetOut[which] = 0;
 	    for(i=0;i<UNIT_NUM;i++){
 			sum[i] = 0;
 			for(j = 0; j < SAM_NUM; j++)
 				sum[i] = sum[i] + (parms->SamIn[j]-parms->c_k[i][j])*(parms->SamIn[j]-parms->c_k[i][j]);//求平方和
 			r[i] = exp(- sum[i] / (2*parms->delta_k[i]*parms->delta_k[i]));//求隐含层神经元值
-			parms->NetOut = parms->NetOut + w[i] * r[i];
+			parms->NetOut[which] = parms->NetOut[which] + w[i] * r[i];
 		}
 
-		SSE = (parms->queue_len[0]-parms->NetOut)*(parms->queue_len[0]-parms->NetOut)/2;
+		SSE = (parms->queue_len[0]-parms->NetOut[which])*(parms->queue_len[0]-parms->NetOut[which])/2;
 
 		/*
 		SSE = 0;
@@ -467,7 +467,6 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	int epoch;
 	double sum[UNIT_NUM];
 	double SSE[PARTICLE_NUM];
-	double oldNetOut;
 
 	//PSO
 	int iw1;
@@ -504,7 +503,6 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 			parms->SamIn[i] = queue_len[i-SAM_NUM/2];
 	}
 
-	oldNetOut = parms->NetOut;
 
 	iw1 = parms->iw1;
 	iw2 = parms->iw2;
@@ -654,6 +652,9 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	
 	//更新RBF的权重参数w_k
 	for(j=0;j<UNIT_NUM;j++) parms->w_k[j] = parms->gbest[j];	
+
+	//更新最好粒子的索引(输出NetOut时有用)
+	parms->gbest_index = index;
 //--------------------------------------------------------------------------------------------
 	//计算parms->jacobian信息
 	//printk(KERN_INFO "-------------------jacobian---------------\n");
