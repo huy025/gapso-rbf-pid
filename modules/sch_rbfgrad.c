@@ -409,12 +409,42 @@ int rbfgrad_stop_prob_thread_func(void* data)
 	return 0;
 }
 
+
+double get_rbf_SSE(struct rbfgrad_parms *parms,int which)
+{
+	double *w=(parms->w_pso)[which];
+
+	int i,j;
+	double SSE;
+	double sum[UNIT_NUM];
+	double r[UNIT_NUM];		// 隐含层神经元值
+
+		parms->NetOut = 0;
+	    for(i=0;i<UNIT_NUM;i++){
+			sum[i] = 0;
+			for(j = 0; j < SAM_NUM; j++)
+				sum[i] = sum[i] + (parms->SamIn[j]-parms->c_k[i][j])*(parms->SamIn[j]-parms->c_k[i][j]);//求平方和
+			r[i] = exp(- sum[i] / (2*parms->delta_k[i]*parms->delta_k[i]));//求隐含层神经元值
+			parms->NetOut = parms->NetOut + w[i] * r[i];
+		}
+
+		SSE = (parms->queue_len[0]-parms->NetOut)*(parms->queue_len[0]-parms->NetOut)/2;
+
+		/*
+		SSE = 0;
+		for(j=0; j<SAM_NUM; j++)
+			SSE = SSE + (SamOut[j]-NetOut)*(SamOut[j]-NetOut); 
+			*/
+	
+	return SSE;
+}
+
+
 static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 {
     struct rbfgrad_sched_data *data = qdisc_priv(sch);
     struct rbfgrad_parms *parms = &data->parms;
-	int ret = 0;
-	int i,j;
+	int i,j,k,index;
 	double temp;
 
 	//trace debug
@@ -436,8 +466,22 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	//for will use
 	int epoch;
 	double sum[UNIT_NUM];
-	double SSE;
+	double SSE[PARTICLE_NUM];
 	double oldNetOut;
+
+	//PSO
+	int iw1;
+	int iw2;
+	int iwe;
+	int ac1;
+	int ac2;
+	int mv;
+	int mwav;
+	double ergrd;
+	double ergrdep;
+
+	double iwt[MAX_EPOCH];
+	double rannum1,rannum2;
 
 	eta_p = parms->eta_p;
 	eta_i = parms->eta_i;
@@ -446,38 +490,33 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	alpha = parms->alpha;
 	parms->jacobian = 0;
 	
-
-	//kernel_fpu_begin();//为了支持浮点运算
-	printk(KERN_INFO "--------------------------------START---------------------------\n");
 	e_k = parms->e_k / 6500.00;
 	e_k_1 = parms->e_k_1 / 6500.00;
 	e_k_2 = parms->e_k_2 / 6500.00;
-	//printk(KERN_INFO "-------------------e_k_i---------------------\n");
-	printk(KERN_INFO "%lld\n",*(long long*)&e_k);
-	printk(KERN_INFO "%lld\n",*(long long*)&e_k_1);
-	printk(KERN_INFO "%lld\n",*(long long*)&e_k_2);
-	printk(KERN_INFO "----------------\n");
-	//printk(KERN_INFO "-------------------queue_len[i]---------------\n");
 	for(i=0;i<SAM_NUM;i++){
 		queue_len[i] = parms->queue_len[i] / 6500.00;
-		printk(KERN_INFO "%lld\n",*(long long*)&queue_len[i]);
 	}
-	printk(KERN_INFO "----------------\n");
-//--------------------------------------------------------------------------------------------
-	//printk(KERN_INFO "-------------------Sam_In[i]---------------\n");
     for(i=0;i<SAM_NUM;i++)
 	{
 		if(i<SAM_NUM/2)
 			parms->SamIn[i] = parms->proba[i];
 		else
 			parms->SamIn[i] = queue_len[i-SAM_NUM/2];
-
-		printk(KERN_INFO "%lld\n",*(long long*)&parms->SamIn[i]);
 	}
-	printk(KERN_INFO "----------------\n");
-
 
 	oldNetOut = parms->NetOut;
+
+	iw1 = parms->iw1;
+	iw2 = parms->iw2;
+	iwe = parms->iwe;
+	ac1 = parms->ac1;
+	ac2 = parms->ac2;
+	mv = parms->mv;
+	mwav = parms->mwav;
+	ergrd = parms->ergrd;
+	ergrdep = parms->ergrdep;
+//---------------------------原先的梯度学习方法调整RBF参数-------------------------------------------------
+	/*
 	for(epoch=0; epoch < parms->MaxEpoch; epoch++)
 	{
 		parms->NetOut = 0;
@@ -485,73 +524,140 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 			sum[i] = 0;
 			for(j = 0; j < SAM_NUM; j++)
 				sum[i] = sum[i] + (parms->SamIn[j]-parms->c_k[i][j])*(parms->SamIn[j]-parms->c_k[i][j]);//求平方和
-				
 			r[i] = exp(- sum[i] / (2*parms->delta_k[i]*parms->delta_k[i]));//求隐含层神经元值
-	    
 			parms->NetOut = parms->NetOut + parms->w_k[i] * r[i];
 		}
 
-		/*
-		if(oldNetOut>parms->q_ref*0.5 && oldNetOut<parms->q_ref*1.5 && fabs(parms->NetOut-oldNetOut)>oldNetOut/parms->q_ref*oldNetOut)
-			parms->NetOut = oldNetOut;
-			*/
-		//if(oldNetOut>100 && oldNetOut<500 && parms->NetOut<100 && parms->NetOut>500)
-			//parms->NetOut = oldNetOut;
-
-		//printk(KERN_INFO "-------------------NetOut---------------\n");
-		printk(KERN_INFO "%lld\n",*(long long*)&parms->NetOut);
-		printk(KERN_INFO "----------------\n");
-	    
 		SSE = (queue_len[0]-parms->NetOut)*(queue_len[0]-parms->NetOut)/2;
-
-		/*
-	    if(SSE<parms->E0)
-	        break;
-			*/
 		
-	    for(i=0;i<UNIT_NUM;i++)
-		{
+	    for(i=0;i<UNIT_NUM;i++){
 			parms->w_k_2[i]=parms->w_k_1[i];
-			parms->w_k_1[i]=parms->w_k[i];
+			parms->w_k_1[i=parms->w_k[i];
 			parms->delta_k_2[i]=parms->delta_k_1[i];
 			parms->delta_k_1[i]=parms->delta_k[i];
-			for(j=0;j<SAM_NUM;j++)
-			{
+			for(j=0;j<SAM_NUM;j++){
 				parms->c_k_2[i][j]=parms->c_k_1[i][j];
 				parms->c_k_1[i][j]=parms->c_k[i][j];
 			}
 		}
 
-		//printk(KERN_INFO "-------------------w[i]  delta[i]  c[i][j]---------------\n");
-	    for(i=0;i<UNIT_NUM;i++)
-		{
+	    for(i=0;i<UNIT_NUM;i++){
 			parms->w_k[i]=parms->w_k_1[i]+ \
 				   alpha*(parms->w_k_1[i]-parms->w_k_2[i])+ \
 				   eta*(queue_len[0]-parms->NetOut)*r[i];
 			parms->delta_k[i]=parms->delta_k_1[i]+ \
 					   alpha*(parms->delta_k_1[i]-parms->delta_k_2[i])+ \
 					   eta*(queue_len[0]-parms->NetOut)*parms->w_k[i]*r[i]*sum[i]/(parms->delta_k_1[i]*parms->delta_k[i]*parms->delta_k[i]);
-			printk(KERN_INFO "%lld\n",*(long long*)&parms->w_k[i]);
-			printk(KERN_INFO "%lld\n",*(long long*)&parms->w_k_1[i]);
-			printk(KERN_INFO "%lld\n",*(long long*)&parms->w_k_2[i]);
-			printk(KERN_INFO "%lld\n",*(long long*)&parms->delta_k[i]);
-			printk(KERN_INFO "%lld\n",*(long long*)&parms->delta_k_1[i]);
-			printk(KERN_INFO "%lld\n",*(long long*)&parms->delta_k_2[i]);
-	        for(j=0;j<SAM_NUM;j++)
-			{
+	        for(j=0;j<SAM_NUM;j++){
 				parms->c_k[i][j]=parms->c_k_1[i][j] + \
 						  alpha*(parms->c_k_1[i][j]-parms->c_k_2[i][j])+ \
 						  eta*(queue_len[0]-parms->NetOut)*parms->w_k[i]*r[i]*(parms->SamIn[j]-parms->c_k_1[i][j])/(parms->delta_k[i]*parms->delta_k[i]);
-				printk(KERN_INFO "%lld\n",*(long long*)&parms->c_k[i][j]);
-				printk(KERN_INFO "%lld\n",*(long long*)&parms->c_k_1[i][j]);
-				printk(KERN_INFO "%lld\n",*(long long*)&parms->c_k_2[i][j]);
 			}
 		}
 	}
+	*/
+//---------------------------现在的GAPSO学习方法调整RBF参数-----------------------------------------------
+	//initial pbest positions vals
+	//初始化pbest
+	for(i=0;i<PARTICLE_NUM;i++)
+		for(j=0;j<UNIT_NUM;j++)
+			parms->pbest[i][j]=parms->pos[i][j];
+	//得到误差的方差和，也就是粒子的评价指标值
+	for(i=0;i<PARTICLE_NUM;i++){
+		get_rbf_SSE(parms,i);
+	}
+	//初始化pbestval
+	for(i=0; i<PARTICLE_NUM; i++){
+		parms->pbestval[i] = SSE[i];
+	}
+	//初始化parms->gbestval，index为pbestval最小的粒子索引
+	parms->gbestval = parms->pbestval[0];
+	index = 0;
+	for(j=0;j<PARTICLE_NUM;j++){
+		if(parms->gbestval>parms->pbestval[j]){
+			parms->gbestval = parms->pbestval[j];
+			index = j;
+		}
+	}
+	//初始化gbest
+	for(k=0;k<UNIT_NUM;k++)	
+		parms->gbest[k] = parms->pbest[index][k];
+	//tr[0] = parms->gbestval; //keep track of global best SSE
+
+	//主循环开始
+	for(i=0; i < MAX_EPOCH; i++){
+		//对每个粒子求评价指标（SSE）值，根据该值更新每个粒子的pbest和pbestval
+		for(j=0; j<PARTICLE_NUM; j++){
+			SSE[j] = get_rbf_SSE(parms,j);//use Wj
+			//update pbest
+			if(parms->pbestval[j]>SSE[j]){
+				parms->pbestval[j]=SSE[j];
+				for(k=0;k<UNIT_NUM;k++)	
+					parms->pbest[j][k] = parms->pos[j][k];
+			}
+		}
+		//update gbest
+		parms->gbestval = parms->pbestval[0];
+		index = 0;
+		for(j=0;j<PARTICLE_NUM;j++){
+			if(parms->gbestval>parms->pbestval[j]){
+				parms->gbestval = parms->pbestval[j];
+				index = j;
+			}
+		}
+		for(k=0;k<UNIT_NUM;k++)	
+			parms->gbest[k] = parms->pbest[index][k];
+		
+		//tr[i+1] = parms->gbestval; //keep track of global best SSE
+		//te = i;//this will return the epoch number to calling program when done
+		
+		//get inertia weight ,just a linear funct w.r.t epoch parameter iwe
+		if(i<iwe)
+			iwt[i]=((iw2-iw1)/(iwe-1))*(i)+iw1;
+		else
+			iwt[i]=iw2;
+
+		//this for loop is the heart of the PSO algorithm,updates position an velocity across dimension D
+		//此for循环是PSO算法的核心，更新粒子位置和速度
+		for(j=0; j<PARTICLE_NUM; j++){
+			for(k=0; k<UNIT_NUM; k++){
+				rannum1 = random32()/(RAND_MAX+1.0);
+				rannum2 = random32()/(RAND_MAX+1.0);
+				//update velocity for each dimension of each particle
+				//更新速度
+				parms->vel[j][k] = iwt[i]*parms->vel[j][k] + ac1 *rannum1 * (parms->pbest[j][k] - parms->pos[j][k]) + ac2 *rannum2 * (parms->gbest[k] - parms->pos[j][k]);
+
+				if((parms->vel[j][k])>mv)
+					parms->vel[j][k]=mv;
+				if((parms->vel[j][k])<-mv)
+					parms->vel[j][k]=-mv;
+			}
+			//update position for each particle
+			//更新位置
+			for(k=0; k<UNIT_NUM; k++)
+				parms->pos[j][k] = parms->pos[j][k] + parms->vel[j][k]; 
+		}
+
+		//check for stopping criterion based on speed of convergence to desired error
+		//如果上一次的parms->gbestval和此次的相差
+		/*
+		if(abs(tr[i]-parms->gbestval)>ergrd){
+			cnt2=0;
+		}
+		else{
+			cnt2++;
+			if(cnt2>=ergrdep) break;
+		}
+		*/
+	}
+	//主循环结束
+	
+	//更新RBF的权重参数w_k
+	for(j=0;j<UNIT_NUM;j++) parms->w_k[j] = parms->gbest[j];	
 //--------------------------------------------------------------------------------------------
 	//计算parms->jacobian信息
 	//printk(KERN_INFO "-------------------jacobian---------------\n");
-	if(SSE<parms->E0)
+	if(parms->gbestval < parms->E0)
 	{
 	for(i = 0; i < UNIT_NUM; i++)
 	{
@@ -561,33 +667,10 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 				
 		r[i] = exp(- temp / (2*parms->delta_k[i]*parms->delta_k[i]));//求隐含层神经元值
 
-		//save jacobian
-		parms->jacobian_k_1 = parms->jacobian;
-
 		//parms->jacobian = parms->jacobian + parms->w_k[i]*r[i]*(parms->c_k[i][0]-(parms->p_k-parms->p_k_1)) / (parms->delta_k[i]*parms->delta_k[i]); //求jacobian信息，注意
 		parms->jacobian = parms->jacobian + parms->w_k[i]*r[i]*(parms->c_k[i][0]-parms->p_k) / (parms->delta_k[i]*parms->delta_k[i]); //求jacobian信息，注意
 
-		/*
-		if(parms->jacobian < parms->jacobian_min || parms->jacobian > parms->jacobian_max)  	
-		{
-			printk(KERN_INFO "overflow\n");
-			printk(KERN_INFO "%d\n",array_element_rbfgrad);
-			//recover jacobian
-			parms->jacobian = parms->jacobian_k_1;
-		}
-		*/
-		/*
-		if(*(long long*)&(parms->jacobian)==NaN)
-		{
-			printk(KERN_INFO "nan\n");
-			printk(KERN_INFO "%lld\n",*(long long*)&(parms->jacobian));
-			//parms->jacobian = parms->jacobian_k_1;
-			parms->jacobian = 0;
-		}
-		*/
-		printk(KERN_INFO "%lld\n",*(long long*)&parms->jacobian);
 	}
-	printk(KERN_INFO "----------------\n");
 	//计算PID三参数
 		parms->kp_k_1 = parms->kp_k;
 		parms->ki_k_1 = parms->ki_k;
@@ -605,11 +688,6 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 			parms->kd_k = 0;
 	}
 
-	//printk(KERN_INFO "-------------------kp_k ki_k kd_k---------------\n");
-	printk(KERN_INFO "%lld\n",*(long long*)&parms->kp_k);
-	printk(KERN_INFO "%lld\n",*(long long*)&parms->ki_k);
-	printk(KERN_INFO "%lld\n",*(long long*)&parms->kd_k);
-	printk(KERN_INFO "----------------\n");
 	//计算丢弃概率
 	parms->p_k_1 = parms->p_k;
 
@@ -624,12 +702,6 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
     if (parms->p_k < parms->p_min)
        	parms->p_k = parms->p_min;
 
-	//printk(KERN_INFO "-------------------p_k---------------\n");
-	printk(KERN_INFO "%lld\n",*(long long*)&parms->p_k);
-	printk(KERN_INFO "--------------------------------END-----------------------------\n");
-//--------------------------------------------------------------------------------------------
-	//kernel_fpu_end();//为了支持浮点运算
-	
 	prob_number++;
 }
 

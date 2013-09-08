@@ -1,4 +1,4 @@
-data_file = '/root/AQM/gapso-rbf-pid/test/transfered_data.txt'
+data_file = 'transfered_data.txt'
 
 #change the default colors to more pleasant ones and make the lines a little bit thicker
 set style line 1 lc rgb '#8b1a0e' pt 1 ps 1 lt 1 lw 2 # --- red

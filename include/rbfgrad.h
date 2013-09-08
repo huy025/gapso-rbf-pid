@@ -57,6 +57,8 @@ DECLARE_RWSEM(proba_samples_array_sem);
 
 #define SAM_NUM  10
 #define UNIT_NUM  6
+#define PARTICLE_NUM 10 
+#define MAX_EPOCH 10
 
 #define rand_my(min,max)\
 	((double)((max-min)*random32())/(RAND_MAX+1.0)+min)
@@ -97,6 +99,16 @@ struct rbfgrad_parms {
 	double eta;  //
 	int MaxEpoch;//max training times for one set of samples
 	double E0;   //training precision
+	//PSO    2013-9-8
+	int iw1;
+	int iw2;
+	int iwe;
+	int ac1;
+	int ac2;
+	int mv;
+	int mwav;
+	double ergrd;
+	double ergrdep;
 		
 	/* Variables */
 	//队列控制
@@ -124,18 +136,21 @@ struct rbfgrad_parms {
 	double delta_k_2[UNIT_NUM];
 	double jacobian;
 	double NetOut;
+	//PSO 2013-9-8
+	double w_pso[PARTICLE_NUM][UNIT_NUM];//to seperate with w
+	double pos[PARTICLE_NUM][UNIT_NUM];
+	double vel[PARTICLE_NUM][UNIT_NUM];
+	double pbest[PARTICLE_NUM][UNIT_NUM];
+	double pbestval[PARTICLE_NUM];
+	double gbest[UNIT_NUM];
+	double gbestval;
 	
+
 	int q_k;
 	double proba[SAM_NUM];//proba array:record the last SamNum proba
 	int queue_len[SAM_NUM];//queue length array:record the last SamNum queue length 
 	double SamIn[SAM_NUM];
 	double SamOut[SAM_NUM];
-	
-	//NaN的问题到现在还不知道为什么，所以保存历史的jacobian信息到jacobian_k_1中
-	//如果jacobian的值小于jacobian_min或者大于jacobian_max，那么重置jacobian值为jacobian_k_1
-	double jacobian_k_1;
-	double jacobian_max;
-	double jacobian_min;
 };
 
 static inline void rbfgrad_set_parms(struct rbfgrad_parms *p, int sampl_period, 
@@ -208,13 +223,26 @@ static inline void rbfgrad_set_parms(struct rbfgrad_parms *p, int sampl_period,
 	p->e_k_1 = 0;
 	p->e_k_2 = 0;
 
-	p->jacobian_k_1 = 0;
-	p->jacobian_max = DBL_MAX;
-	p->jacobian_min = DBL_MIN;
-
+	//PSO 2013-9-8
+	p->iw1			= 0.9;
+	p->iw2			= 0.2;
+	p->iwe			= (p->MaxEpoch)*3.0/4 ;
+	p->ac1			= 2;
+	p->ac2			= 2;
+	p->mv			= 4;
+	p->mwav			= 100;
+	p->ergrd		= 1e-9;
+	p->ergrdep		= (p->MaxEpoch)/20.0;
+	//init position vector and velcity vector
+	for(j=0;j<UNIT_NUM;j++)
+		p->pos[0][j] = p->w_k[j];
+	for(i=1;i<PARTICLE_NUM;i++)
+		for(j=0;j<UNIT_NUM;j++){
+			p->pos[i][j]=rand_my(-(p->mwav),p->mwav);
+			p->vel[i][j]=rand_my(-(p->mv),p->mv);
+		}
 
 	kernel_fpu_end();//为了支持浮点运算
-	
 
 	p->Scell_log	= Scell_log;
 	p->Scell_max	= (255 << Scell_log);
@@ -237,7 +265,7 @@ enum {
 
 static inline int rbfgrad_cmp_prob(struct rbfgrad_parms *p)
 {
-	int p_random,current_p,current_q;
+	int p_random,current_p;
 	p_random = abs(net_random());
 
 	kernel_fpu_begin();//为了支持浮点运算
