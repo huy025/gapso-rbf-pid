@@ -140,7 +140,7 @@ struct rbfgrad_parms {
 
 static inline void rbfgrad_set_parms(struct rbfgrad_parms *p, int sampl_period, 
                              int q_ref, double p_init, double p_min, double p_max, 
-                             double eta_p, double eta_i, double eta_d, 
+                             double kp_k, double ki_k, double kd_k, double eta_p, double eta_i, double eta_d, 
 				 int n, int m, double alpha, double eta, 
 				 u8 Scell_log, u8 *stab)
 {
@@ -178,9 +178,9 @@ static inline void rbfgrad_set_parms(struct rbfgrad_parms *p, int sampl_period,
 	p->e_k_1 = 0.0;		// 上一次队列长度与参考队列长度的差，初始化为0
 	p->e_k_2 = 0.0;		// 上一次队列长度与参考队列长度的差，初始化为0
 	//PID
-	p->kp_k = 0.01;		// PID当前比例参数
-	p->ki_k = 0.01;		// PID当前积分参数
-	p->kd_k = 0.01;		// PID当前微分参数
+	p->kp_k = kp_k;		// PID当前比例参数
+	p->ki_k = ki_k;		// PID当前积分参数
+	p->kd_k = kd_k;		// PID当前微分参数
 	//RBF;
 	e_max = 1;
 	e_min = -1;

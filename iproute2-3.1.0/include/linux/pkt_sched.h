@@ -264,6 +264,9 @@ struct tc_rbfgrad_qopt
 	double 	p_min;//最小丢弃概率
 	double 	p_max;//最大丢弃概率
 	//PID
+	double	kp_k;
+	double  ki_k;
+	double  kd_k;
 	double 	eta_p;//比例 学习速率
 	double 	eta_i;//积分 学习速率
 	double 	eta_d;//微分 学习速率
@@ -272,6 +275,7 @@ struct tc_rbfgrad_qopt
 	int 		m;
 	double 	alpha;
 	double 	eta;
+
        int		sampl_period;   //采样时间
 	unsigned char   Scell_log;	/* cell size for idle damping */
        __u32		limit;

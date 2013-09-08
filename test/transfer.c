@@ -8,7 +8,7 @@
 #include<stdio.h>
 #include<stdlib.h>
 #include<malloc.h>
-#define ROW 10000
+#define ROW 20000
 #define TEXT_ROW 2
 #define COL 12 
 #define CUR_MAX 4095

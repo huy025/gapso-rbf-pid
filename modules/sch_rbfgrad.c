@@ -374,7 +374,7 @@ static int rbfgrad_change(struct Qdisc *sch, struct nlattr *opt)
 	//设置算法参数，此函数是在rbfgrad.h中定义的
 	rbfgrad_set_parms(&q->parms, ctl->sampl_period, 
                              ctl->q_ref, ctl->p_init, ctl->p_min, ctl->p_max, 
-                             ctl->eta_p, ctl->eta_i, ctl->eta_d, 
+                             ctl->kp_k, ctl->ki_k, ctl->kd_k, ctl->eta_p, ctl->eta_i, ctl->eta_d, 
 				 ctl->n, ctl->m, ctl->alpha, ctl->eta, 
 				 ctl->Scell_log, nla_data(tb[TCA_RBFGRAD_STAB]));
 
@@ -564,6 +564,7 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 		//save jacobian
 		parms->jacobian_k_1 = parms->jacobian;
 
+		//parms->jacobian = parms->jacobian + parms->w_k[i]*r[i]*(parms->c_k[i][0]-(parms->p_k-parms->p_k_1)) / (parms->delta_k[i]*parms->delta_k[i]); //求jacobian信息，注意
 		parms->jacobian = parms->jacobian + parms->w_k[i]*r[i]*(parms->c_k[i][0]-parms->p_k) / (parms->delta_k[i]*parms->delta_k[i]); //求jacobian信息，注意
 
 		/*
@@ -679,6 +680,9 @@ static int rbfgrad_dump(struct Qdisc *sch, struct sk_buff *skb)
 		.sampl_period	= q->parms.sampl_period,
 		.q_ref		= q->parms.q_ref,
 		.p_max		= q->parms.p_max,
+		.kp_k		= q->parms.kp_k,
+		.ki_k		= q->parms.ki_k,
+		.kd_k		= q->parms.kd_k,
 		.eta_p		= q->parms.eta_p,
 		.eta_i		= q->parms.eta_i,
 		.eta_d		= q->parms.eta_d,
