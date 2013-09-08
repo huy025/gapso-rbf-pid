@@ -1,1 +1,0 @@
-cmd_/root/rbfgrad/seqfile_queuedata_rbfgrad.ko := ld -r -m elf_i386 -T /usr/src/linux-2.6.39.2/scripts/module-common.lds --build-id  -o /root/rbfgrad/seqfile_queuedata_rbfgrad.ko /root/rbfgrad/seqfile_queuedata_rbfgrad.o /root/rbfgrad/seqfile_queuedata_rbfgrad.mod.o

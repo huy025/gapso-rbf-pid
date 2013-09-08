@@ -27,7 +27,7 @@
 static void explain(void)
 {
 	fprintf(stderr, "Usage: ... rbfgrad limit BYTES sampl_period INTEGER  q_ref PACKETS p_init PROBABILITY p_min PROBABILITY p_max PROBABILITY\n");
-	fprintf(stderr, "                eta_p COEFFICIENT eta_i COEFFICIENT eta_d COEFFICIENT\n");	
+	fprintf(stderr, "                kp_k COEFFICIENT ki_k COEFFICIENT kd_k COEFFICIENT eta_p COEFFICIENT eta_i COEFFICIENT eta_d COEFFICIENT\n");	
 	fprintf(stderr, "                n INTEGER m INTEGER alpha COEFFICIENT  eta COEFFICIENT\n");	
 	fprintf(stderr, "                [ ecn ]\n");
 }
@@ -68,7 +68,7 @@ static int rbfgrad_parse_opt(struct qdisc_util *qu, int argc, char **argv, struc
 	struct rtattr *tail;
 
 	int sampl_period, q_ref, _n, m; //为了避免与本函数参数中的nlmsghdr *n中的n冲突，所以将int n改为int _n
-	double p_init, p_min, p_max, eta_p, eta_i, eta_d, alpha, eta;/* qjl */
+	double p_init, p_min, p_max, eta_p, eta_i, eta_d, alpha, eta, kp_k, ki_k, kd_k;/* qjl */
 	
 	memset(&opt, 0, sizeof(opt));
 
@@ -158,6 +158,24 @@ static int rbfgrad_parse_opt(struct qdisc_util *qu, int argc, char **argv, struc
 				fprintf(stderr, "Illegal \"eta\"\n");
 				return -1;
 			}
+		} else if (strcmp(*argv, "kp_k") == 0) {
+			NEXT_ARG();
+			if (sscanf(*argv, "%lf", &opt.kp_k) != 1) {
+				fprintf(stderr, "Illegal \"kp_k\"\n");
+				return -1;
+			}
+		} else if (strcmp(*argv, "ki_k") == 0) {
+			NEXT_ARG();
+			if (sscanf(*argv, "%lf", &opt.ki_k) != 1) {
+				fprintf(stderr, "Illegal \"ki_k\"\n");
+				return -1;
+			}
+		} else if (strcmp(*argv, "kd_k") == 0) {
+			NEXT_ARG();
+			if (sscanf(*argv, "%lf", &opt.kd_k) != 1) {
+				fprintf(stderr, "Illegal \"kd_k\"\n");
+				return -1;
+			}
 		} else if (strcmp(*argv, "sampl_period") == 0) {
 			NEXT_ARG();
 			if (sscanf(*argv, "%d", &opt.sampl_period) != 1) {
@@ -240,8 +258,8 @@ static int rbfgrad_print_opt(struct qdisc_util *qu, FILE *f, struct rtattr *opt)
 #endif
 	/*qjl*/
 	if (show_details) {
-		fprintf(f, "q_ref %d p_init %lf p_min %lf p_max %lf eta_p %lf eta_i %lf eta_d %lf _n %d m %d alpha %lf eta %lf sampl_period %d",
-			qopt->q_ref, qopt->p_init, qopt->p_min, qopt->p_max, qopt->eta_p, qopt->eta_i, qopt->eta_d, qopt->n, qopt->m, qopt->alpha, qopt->eta, qopt->sampl_period);
+		fprintf(f, "q_ref %d p_init %lf p_min %lf p_max %lf kp_k %lf ki_k %lf kp_d %lf eta_p %lf eta_i %lf eta_d %lf _n %d m %d alpha %lf eta %lf sampl_period %d",
+			qopt->q_ref, qopt->p_init, qopt->p_min, qopt->p_max, qopt->kp_k, qopt->ki_k, qopt->kd_k, qopt->eta_p, qopt->eta_i, qopt->eta_d, qopt->n, qopt->m, qopt->alpha, qopt->eta, qopt->sampl_period);
 	}
 	return 0;
 }
