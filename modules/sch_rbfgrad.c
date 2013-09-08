@@ -467,6 +467,7 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	int epoch;
 	double sum[UNIT_NUM];
 	double SSE[PARTICLE_NUM];
+	double oldNetOut;
 
 	//PSO
 	int iw1;
@@ -503,6 +504,7 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 			parms->SamIn[i] = queue_len[i-SAM_NUM/2];
 	}
 
+	//oldNetOut = parms->NetOut;
 
 	iw1 = parms->iw1;
 	iw2 = parms->iw2;
@@ -653,7 +655,6 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	//更新RBF的权重参数w_k
 	for(j=0;j<UNIT_NUM;j++) parms->w_k[j] = parms->gbest[j];	
 
-	//更新最好粒子的索引(输出NetOut时有用)
 	parms->gbest_index = index;
 //--------------------------------------------------------------------------------------------
 	//计算parms->jacobian信息

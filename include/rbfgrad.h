@@ -218,8 +218,7 @@ static inline void rbfgrad_set_parms(struct rbfgrad_parms *p, int sampl_period,
 		p->SamIn[i] = 0;
 		p->SamOut[i] = 0;
 	} 
-
-	for(i=0;i<PARTICLE_NUM;i++)
+	for(i=1;i<PARTICLE_NUM;i++)
 		p->NetOut[i] = 0;
 
 	p->e_k = 0;
@@ -244,6 +243,8 @@ static inline void rbfgrad_set_parms(struct rbfgrad_parms *p, int sampl_period,
 			p->pos[i][j]=rand_my(-(p->mwav),p->mwav);
 			p->vel[i][j]=rand_my(-(p->mv),p->mv);
 		}
+
+	p->gbest_index = 0;
 
 	kernel_fpu_end();//为了支持浮点运算
 
