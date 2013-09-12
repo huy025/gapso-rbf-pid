@@ -227,15 +227,15 @@ static inline void rbfgrad_set_parms(struct rbfgrad_parms *p, int sampl_period,
 	p->e_k_2 = 0;
 
 	//PSO 2013-9-8
-	p->iw1			= 0.9;
-	p->iw2			= 0.2;
-	p->iwe			= (p->MaxEpoch)*3.0/4 ;
+	p->iw1			= 0.9;//用于计算iwt
+	p->iw2			= 0.2;//用于计算iwt
+	p->iwe			= (MAX_EPOCH)*3.0/4;//用于计算iwt
 	p->ac1			= 2;
 	p->ac2			= 2;
-	p->mv			= 0.01;
-	p->mwav			= 0.01;
+	p->mv			= 0.01;//粒子速度绝对值最大值
+	p->mwav			= 1.0; //粒子位置绝对值最大值
 	p->ergrd		= 1e-9;
-	p->ergrdep		= (p->MaxEpoch)/20.0;
+	p->ergrdep		= (MAX_EPOCH)/20.0;
 	//init position vector and velcity vector
 	for(j=0;j<UNIT_NUM;j++)
 	{

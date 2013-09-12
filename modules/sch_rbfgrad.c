@@ -124,7 +124,7 @@ static int rbfgrad_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 			//queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->kd_k));
 			queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->vel[0][0]));
 			//queue_show_base_rbfgrad[array_element_rbfgrad].jacobian=*((long long *)(&parms->jacobian));
-			queue_show_base_rbfgrad[array_element_rbfgrad].jacobian=*((long long *)(&parms->gbestval));
+			queue_show_base_rbfgrad[array_element_rbfgrad].jacobian=*((long long *)(&parms->pbestval[0]));
 			queue_show_base_rbfgrad[array_element_rbfgrad].NetOut=*((long long *)(&parms->NetOut[parms->gbest_index]));
 			queue_show_base_rbfgrad[array_element_rbfgrad].e_k=parms->e_k;
 			queue_show_base_rbfgrad[array_element_rbfgrad].e_k_1=parms->e_k_1;
@@ -433,7 +433,7 @@ double get_rbf_SSE(struct rbfgrad_parms *parms,int which)
 			parms->NetOut[which] = parms->NetOut[which] + w[i] * r[i];
 		}
 
-		SSE = (parms->queue_len[0]-parms->NetOut[which])*(parms->queue_len[0]-parms->NetOut[which])/2;
+		SSE = (parms->queue_len[0]/6500.00-parms->NetOut[which])*(parms->queue_len[0]/6500.00-parms->NetOut[which])/2;
 
 		/*
 		SSE = 0;
@@ -568,11 +568,12 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 		for(j=0;j<UNIT_NUM;j++)
 			parms->pbest[i][j]=parms->pos[i][j];
 	//得到误差的方差和，也就是粒子的评价指标值
-	for(i=0;i<PARTICLE_NUM;i++)
-		get_rbf_SSE(parms,i);
+	//for(i=0;i<PARTICLE_NUM;i++)
+	//	get_rbf_SSE(parms,i);
 	//初始化pbestval
 	for(i=0; i<PARTICLE_NUM; i++)
-		parms->pbestval[i] = SSE[i];
+		//parms->pbestval[i] = SSE[i];
+		parms->pbestval[i] = get_rbf_SSE(parms,i);
 	//初始化parms->gbestval，index为pbestval最小的粒子索引
 	parms->gbestval = parms->pbestval[0];
 	index = 0;
@@ -628,7 +629,7 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 				rannum2 = (double)random32()/(RAND_MAX+1.0);
 				//update velocity for each dimension of each particle
 				//更新速度
-				parms->vel[j][k] = iwt[i]*parms->vel[j][k] + ac1 *rannum1 * (parms->pbest[j][k] - parms->pos[j][k]) + ac2 *rannum2 * (parms->gbest[k] - parms->pos[j][k]);
+				parms->vel[j][k] = 0;//iwt[i]*parms->vel[j][k] + ac1 *rannum1 * (parms->pbest[j][k] - parms->pos[j][k]) + ac2 *rannum2 * (parms->gbest[k] - parms->pos[j][k]);
 
 				if((parms->vel[j][k])>mv)
 					parms->vel[j][k]=mv;
