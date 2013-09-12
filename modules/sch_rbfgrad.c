@@ -629,7 +629,7 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 				rannum2 = (double)random32()/(RAND_MAX+1.0);
 				//update velocity for each dimension of each particle
 				//更新速度
-				parms->vel[j][k] = 0;//iwt[i]*parms->vel[j][k] + ac1 *rannum1 * (parms->pbest[j][k] - parms->pos[j][k]) + ac2 *rannum2 * (parms->gbest[k] - parms->pos[j][k]);
+				parms->vel[j][k] = iwt[i]*parms->vel[j][k] + ac1 *rannum1 * (parms->pbest[j][k] - parms->pos[j][k]) + ac2 *rannum2 * (parms->gbest[k] - parms->pos[j][k]);
 
 				if((parms->vel[j][k])>mv)
 					parms->vel[j][k]=mv;
