@@ -115,11 +115,16 @@ static int rbfgrad_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 			queue_show_base_rbfgrad[array_element_rbfgrad].length=sch->q.qlen;
 			queue_show_base_rbfgrad[array_element_rbfgrad].numbers=array_element_rbfgrad;
 			queue_show_base_rbfgrad[array_element_rbfgrad].mark_type=RBFGRAD_DONT_MARK;
-			queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->p_k));
-			queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->kp_k));
-			queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->ki_k));
-			queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->kd_k));
-			queue_show_base_rbfgrad[array_element_rbfgrad].jacobian=*((long long *)(&parms->jacobian));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->p_k));
+			queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->pos[1][1]));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->kp_k));
+			queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->pos[1][0]));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->ki_k));
+			queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->vel[0][1]));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->kd_k));
+			queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->vel[0][0]));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].jacobian=*((long long *)(&parms->jacobian));
+			queue_show_base_rbfgrad[array_element_rbfgrad].jacobian=*((long long *)(&parms->gbestval));
 			queue_show_base_rbfgrad[array_element_rbfgrad].NetOut=*((long long *)(&parms->NetOut[parms->gbest_index]));
 			queue_show_base_rbfgrad[array_element_rbfgrad].e_k=parms->e_k;
 			queue_show_base_rbfgrad[array_element_rbfgrad].e_k_1=parms->e_k_1;
@@ -312,8 +317,8 @@ static void rbfgrad_destroy(struct Qdisc *sch)
 		*/
 	kernel_fpu_end();//为了支持浮点运算
 
-	printk("<1>%d\n",prob_number);
-	printk("<1>%d\n",pkg_number);
+	printk("<1>prob_number:%d\n",prob_number);
+	printk("<1>pkg_number:%d\n",pkg_number);
 
 	qdisc_destroy(q->qdisc);
 
@@ -563,13 +568,11 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 		for(j=0;j<UNIT_NUM;j++)
 			parms->pbest[i][j]=parms->pos[i][j];
 	//得到误差的方差和，也就是粒子的评价指标值
-	for(i=0;i<PARTICLE_NUM;i++){
+	for(i=0;i<PARTICLE_NUM;i++)
 		get_rbf_SSE(parms,i);
-	}
 	//初始化pbestval
-	for(i=0; i<PARTICLE_NUM; i++){
+	for(i=0; i<PARTICLE_NUM; i++)
 		parms->pbestval[i] = SSE[i];
-	}
 	//初始化parms->gbestval，index为pbestval最小的粒子索引
 	parms->gbestval = parms->pbestval[0];
 	index = 0;

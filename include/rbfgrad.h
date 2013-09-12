@@ -100,13 +100,13 @@ struct rbfgrad_parms {
 	int MaxEpoch;//max training times for one set of samples
 	double E0;   //training precision
 	//PSO    2013-9-8
-	int iw1;
-	int iw2;
-	int iwe;
-	int ac1;
-	int ac2;
-	int mv;
-	int mwav;
+	double iw1;
+	double iw2;
+	double iwe;
+	double ac1;
+	double ac2;
+	double mv;
+	double mwav;
 	double ergrd;
 	double ergrdep;
 		
@@ -218,7 +218,8 @@ static inline void rbfgrad_set_parms(struct rbfgrad_parms *p, int sampl_period,
 		p->SamIn[i] = 0;
 		p->SamOut[i] = 0;
 	} 
-	for(i=1;i<PARTICLE_NUM;i++)
+
+	for(i=0;i<PARTICLE_NUM;i++)
 		p->NetOut[i] = 0;
 
 	p->e_k = 0;
@@ -231,19 +232,23 @@ static inline void rbfgrad_set_parms(struct rbfgrad_parms *p, int sampl_period,
 	p->iwe			= (p->MaxEpoch)*3.0/4 ;
 	p->ac1			= 2;
 	p->ac2			= 2;
-	p->mv			= 4;
-	p->mwav			= 100;
+	p->mv			= 0.01;
+	p->mwav			= 0.01;
 	p->ergrd		= 1e-9;
 	p->ergrdep		= (p->MaxEpoch)/20.0;
 	//init position vector and velcity vector
 	for(j=0;j<UNIT_NUM;j++)
+	{
 		p->pos[0][j] = p->w_k[j];
+		//p->vel[0][j] = rand_my(-(p->mv),p->mv);
+	}
 	for(i=1;i<PARTICLE_NUM;i++)
 		for(j=0;j<UNIT_NUM;j++){
 			p->pos[i][j]=rand_my(-(p->mwav),p->mwav);
 			p->vel[i][j]=rand_my(-(p->mv),p->mv);
 		}
 
+	p->gbestval = 0;
 	p->gbest_index = 0;
 
 	kernel_fpu_end();//为了支持浮点运算

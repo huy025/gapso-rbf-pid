@@ -12,4 +12,3 @@ insmod ../queuedata/seqfile_queuedata_rbfgrad.ko
 #iperf -c 192.168.5.101 -b 10M -P 10 -t 100
 #client  ip:192.168.5.101   parallel:10  time:100 secs
 iperf -c $1 -P $2 -t $3 
-
