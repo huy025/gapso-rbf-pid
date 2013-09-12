@@ -116,9 +116,9 @@ static int rbfgrad_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 			queue_show_base_rbfgrad[array_element_rbfgrad].numbers=array_element_rbfgrad;
 			queue_show_base_rbfgrad[array_element_rbfgrad].mark_type=RBFGRAD_DONT_MARK;
 			//queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->p_k));
-			queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->pos[1][1]));
+			queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->pos[0][1]));
 			//queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->kp_k));
-			queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->pos[1][0]));
+			queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->pos[0][0]));
 			//queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->ki_k));
 			queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->vel[0][1]));
 			//queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->kd_k));
@@ -475,13 +475,13 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	double oldNetOut;
 
 	//PSO
-	int iw1;
-	int iw2;
-	int iwe;
-	int ac1;
-	int ac2;
-	int mv;
-	int mwav;
+	double iw1;
+	double iw2;
+	double iwe;
+	double ac1;
+	double ac2;
+	double mv;
+	double mwav;
 	double ergrd;
 	double ergrdep;
 
@@ -624,8 +624,8 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 		//此for循环是PSO算法的核心，更新粒子位置和速度
 		for(j=0; j<PARTICLE_NUM; j++){
 			for(k=0; k<UNIT_NUM; k++){
-				rannum1 = random32()/(RAND_MAX+1.0);
-				rannum2 = random32()/(RAND_MAX+1.0);
+				rannum1 = (double)random32()/(RAND_MAX+1.0);
+				rannum2 = (double)random32()/(RAND_MAX+1.0);
 				//update velocity for each dimension of each particle
 				//更新速度
 				parms->vel[j][k] = iwt[i]*parms->vel[j][k] + ac1 *rannum1 * (parms->pbest[j][k] - parms->pos[j][k]) + ac2 *rannum2 * (parms->gbest[k] - parms->pos[j][k]);

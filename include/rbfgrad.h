@@ -240,7 +240,7 @@ static inline void rbfgrad_set_parms(struct rbfgrad_parms *p, int sampl_period,
 	for(j=0;j<UNIT_NUM;j++)
 	{
 		p->pos[0][j] = p->w_k[j];
-		//p->vel[0][j] = rand_my(-(p->mv),p->mv);
+		p->vel[0][j] = rand_my(-(p->mv),p->mv);
 	}
 	for(i=1;i<PARTICLE_NUM;i++)
 		for(j=0;j<UNIT_NUM;j++){
