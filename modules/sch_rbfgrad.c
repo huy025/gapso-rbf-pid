@@ -115,16 +115,15 @@ static int rbfgrad_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 			queue_show_base_rbfgrad[array_element_rbfgrad].length=sch->q.qlen;
 			queue_show_base_rbfgrad[array_element_rbfgrad].numbers=array_element_rbfgrad;
 			queue_show_base_rbfgrad[array_element_rbfgrad].mark_type=RBFGRAD_DONT_MARK;
-			//queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->p_k));
-			queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->pos[0][1]));
-			//queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->kp_k));
-			queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->pos[0][0]));
-			//queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->ki_k));
-			queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->vel[0][1]));
-			//queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->kd_k));
-			queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->vel[0][0]));
-			//queue_show_base_rbfgrad[array_element_rbfgrad].jacobian=*((long long *)(&parms->jacobian));
-			queue_show_base_rbfgrad[array_element_rbfgrad].jacobian=*((long long *)(&parms->pbestval[0]));
+			queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->p_k));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->pos[0][1]));
+			queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->kp_k));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->pos[0][0]));
+			queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->ki_k));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->vel[1][1]));
+			queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->kd_k));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->vel[1][0]));
+			queue_show_base_rbfgrad[array_element_rbfgrad].jacobian=*((long long *)(&parms->jacobian));
 			queue_show_base_rbfgrad[array_element_rbfgrad].NetOut=*((long long *)(&parms->NetOut[parms->gbest_index]));
 			queue_show_base_rbfgrad[array_element_rbfgrad].e_k=parms->e_k;
 			queue_show_base_rbfgrad[array_element_rbfgrad].e_k_1=parms->e_k_1;
@@ -169,16 +168,20 @@ static int rbfgrad_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 		if(cyc_count==CYC_MAX){
 			queue_show_base_rbfgrad[array_element_rbfgrad].length=sch->q.qlen;
 			queue_show_base_rbfgrad[array_element_rbfgrad].numbers=array_element_rbfgrad;
-			queue_show_base_rbfgrad[array_element_rbfgrad].mark_type=RBFGRAD_PROB_MARK;
+			queue_show_base_rbfgrad[array_element_rbfgrad].mark_type=RBFGRAD_DONT_MARK;
 			queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->p_k));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->pos[0][1]));
 			queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->kp_k));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->pos[0][0]));
 			queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->ki_k));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].ki=*((long long *)(&parms->vel[1][1]));
 			queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->kd_k));
+			//queue_show_base_rbfgrad[array_element_rbfgrad].kd=*((long long *)(&parms->vel[1][0]));
 			queue_show_base_rbfgrad[array_element_rbfgrad].jacobian=*((long long *)(&parms->jacobian));
 			queue_show_base_rbfgrad[array_element_rbfgrad].NetOut=*((long long *)(&parms->NetOut[parms->gbest_index]));
-			queue_show_base_rbfgrad[array_element_rbfgrad].e_k=*((long long *)(&parms->e_k));
-			queue_show_base_rbfgrad[array_element_rbfgrad].e_k_1=*((long long *)(&parms->e_k_1));
-			queue_show_base_rbfgrad[array_element_rbfgrad].e_k_2=*((long long *)(&parms->e_k_2));
+			queue_show_base_rbfgrad[array_element_rbfgrad].e_k=parms->e_k;
+			queue_show_base_rbfgrad[array_element_rbfgrad].e_k_1=parms->e_k_1;
+			queue_show_base_rbfgrad[array_element_rbfgrad].e_k_2=parms->e_k_2;
 			/*
 			for(i=0;i<SAM_NUM;i++)
 			{
@@ -417,7 +420,7 @@ int rbfgrad_stop_prob_thread_func(void* data)
 
 double get_rbf_SSE(struct rbfgrad_parms *parms,int which)
 {
-	double *w=(parms->w_pso)[which];
+	double *w=(parms->pos)[which];
 
 	int i,j;
 	double SSE;
@@ -567,12 +570,8 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	for(i=0;i<PARTICLE_NUM;i++)
 		for(j=0;j<UNIT_NUM;j++)
 			parms->pbest[i][j]=parms->pos[i][j];
-	//得到误差的方差和，也就是粒子的评价指标值
-	//for(i=0;i<PARTICLE_NUM;i++)
-	//	get_rbf_SSE(parms,i);
-	//初始化pbestval
+	//得到误差的方差和，也就是粒子的评价指标值，初始化pbestval
 	for(i=0; i<PARTICLE_NUM; i++)
-		//parms->pbestval[i] = SSE[i];
 		parms->pbestval[i] = get_rbf_SSE(parms,i);
 	//初始化parms->gbestval，index为pbestval最小的粒子索引
 	parms->gbestval = parms->pbestval[0];
@@ -659,6 +658,7 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	//更新RBF的权重参数w_k
 	for(j=0;j<UNIT_NUM;j++) parms->w_k[j] = parms->gbest[j];	
 
+	//printk(KERN_INFO "%d\n",index);
 	parms->gbest_index = index;
 //--------------------------------------------------------------------------------------------
 	//计算parms->jacobian信息

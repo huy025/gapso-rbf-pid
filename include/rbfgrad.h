@@ -205,7 +205,7 @@ static inline void rbfgrad_set_parms(struct rbfgrad_parms *p, int sampl_period,
 		p->w_k[i] = rand_my(-1,1);
 		p->w_k_1[i] = rand_my(-1,1);
 		for(j = 0; j < SAM_NUM; j++){
-			p->c_k[i][j] = e_min+(i-1)*(e_max-e_min)*(UNIT_NUM-1);
+			p->c_k[i][j] = 0;//e_min+(i-1)*(e_max-e_min)*(UNIT_NUM-1);
 			p->c_k_1[i][j] = e_min+(i-1)*(e_max-e_min)*(UNIT_NUM-1);
 		}
 		p->delta_k[i] = 40;
