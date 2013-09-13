@@ -168,7 +168,7 @@ static int rbfgrad_enqueue(struct sk_buff *skb, struct Qdisc *sch)
 		if(cyc_count==CYC_MAX){
 			queue_show_base_rbfgrad[array_element_rbfgrad].length=sch->q.qlen;
 			queue_show_base_rbfgrad[array_element_rbfgrad].numbers=array_element_rbfgrad;
-			queue_show_base_rbfgrad[array_element_rbfgrad].mark_type=RBFGRAD_DONT_MARK;
+			queue_show_base_rbfgrad[array_element_rbfgrad].mark_type=RBFGRAD_PROB_MARK;
 			queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->p_k));
 			//queue_show_base_rbfgrad[array_element_rbfgrad].p=*((long long *)(&parms->pos[0][1]));
 			queue_show_base_rbfgrad[array_element_rbfgrad].kp=*((long long *)(&parms->kp_k));

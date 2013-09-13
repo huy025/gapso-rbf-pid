@@ -57,7 +57,7 @@ DECLARE_RWSEM(proba_samples_array_sem);
 
 #define SAM_NUM  10
 #define UNIT_NUM  6
-#define PARTICLE_NUM 10 
+#define PARTICLE_NUM 90 
 #define MAX_EPOCH 10
 
 #define rand_my(min,max)\
