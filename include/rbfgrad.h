@@ -75,7 +75,7 @@ struct rbfgrad_stats {
 
 struct rbfgrad_parms {
 	/* Parameters */
-	int 	sampl_period;   //采样时间
+	int 	sampl_period;//采样时间（秒）
 
 	u32		Scell_max;
 	u8		Scell_log;
@@ -83,23 +83,23 @@ struct rbfgrad_parms {
 
 	/* Parameters */
 	//队列控制
-	int q_ref;//参考队列长度
-	double p_init;//初始丢弃概率
-	double p_min;//最小丢弃概率
-	double p_max;//最大丢弃概率
+	int q_ref;    //参考队列长度
+	double p_init;//初始标记/丢弃概率
+	double p_min; //最小标记/丢弃概率
+	double p_max; //最大标记/丢弃概率
 	//PID
-	double eta_p;//比例 学习速率
-	double eta_i;//积分 学习速率
-	double eta_d;//微分 学习速率
+	double eta_p; //比例 学习速率
+	double eta_i; //积分 学习速率
+	double eta_d; //微分 学习速率
 	//RBF
-	int SamNum;  //number of samples in one set
-	int n;       //input layer dimensions
-	int m;       //hidden layer dimensions
-	double alpha;//
-	double eta;  //
-	int MaxEpoch;//max training times for one set of samples
-	double E0;   //training precision
-	//PSO    2013-9-8
+	int SamNum;   //number of samples in one set
+	int n;        //input layer dimensions
+	int m;        //hidden layer dimensions
+	double alpha; //
+	double eta;   //
+	int MaxEpoch; //max training times for one set of samples
+	double E0;    //training precision
+	//PSO
 	double iw1;
 	double iw2;
 	double iwe;

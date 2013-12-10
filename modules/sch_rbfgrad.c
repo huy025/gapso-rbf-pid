@@ -458,6 +458,18 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	//trace debug
 	//struct trace_rbfgrad_parms trace_parms;
 
+	------------------------------------------------------
+	  variable   |   type       | meaning
+	------------------------------------------------------
+				 |                 |
+	------------------------------------------------------			 
+				 |                 |
+	------------------------------------------------------
+				 |                 |
+	------------------------------------------------------
+				 |                 |
+	------------------------------------------------------
+
 	double eta_p;	// PID比例参数kp的学习速率
 	double eta_i;	// PID积分参数ki的学习速率
 	double eta_d;	// PID微分参数kd的学习速率
@@ -498,6 +510,7 @@ static void __inline__ rbfgrad_mark_probability(struct Qdisc *sch)
 	alpha = parms->alpha;
 	parms->jacobian = 0;
 	
+	//标准化 归一化
 	e_k = parms->e_k / 6500.00;
 	e_k_1 = parms->e_k_1 / 6500.00;
 	e_k_2 = parms->e_k_2 / 6500.00;

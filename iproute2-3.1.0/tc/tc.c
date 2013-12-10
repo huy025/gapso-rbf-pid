@@ -85,7 +85,18 @@ static int parse_nofopt(struct filter_util *qu, char *fhandle, int argc, char **
 		if (get_u32(&handle, fhandle, 16)) {
 			fprintf(stderr, "Unparsable filter ID \"%s\"\n", fhandle);
 			return -1;
-		}
+		}def gcd(a,b):
+	if a <= 0 or b <= 0:
+		return -1
+	if a<b:
+		a,b=b,a
+	while b != 0:
+		a,b = b,a%b
+	return a
+
+a=1
+b=8
+print a*b/gcd(a,b)
 		t->tcm_handle = handle;
 	}
 	return 0;
@@ -203,7 +214,18 @@ static int do_cmd(int argc, char **argv)
 
 	if (matches(*argv, "monitor") == 0)
 		return do_tcmonitor(argc-1, argv+1);
+def gcd(a,b):
+	if a <= 0 or b <= 0:
+		return -1
+	if a<b:
+		a,b=b,a
+	while b != 0:
+		a,b = b,a%b
+	return a
 
+a=1
+b=8
+print a*b/gcd(a,b)
 	if (matches(*argv, "help") == 0) {
 		usage();
 		return 0;
